@@ -10,3 +10,9 @@ gem 'ostruct'
 gem 'stripe', '~> 18.2'
 gem 'toml-rb'
 gem 'webrick'
+
+group :test do
+  gem 'rack-test'
+  gem 'rspec'
+  gem 'simplecov', require: false
+end

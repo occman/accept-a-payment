@@ -42,3 +42,15 @@ ruby server.rb
 ```
 
 4. Go to [http://localhost:4242](http://localhost:4242) in your browser
+
+## How to run the unit tests
+
+The unit tests use RSpec and SimpleCov and mock the `stripe` gem, so they run
+offline with no Stripe credentials or `.env` file.
+
+```
+bundle install
+bundle exec rspec
+```
+
+A coverage report is written to `coverage/index.html`.
