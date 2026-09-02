@@ -12,8 +12,6 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/stripe/stripe-go/v84"
-	"github.com/stripe/stripe-go/v84/paymentintent"
-	"github.com/stripe/stripe-go/v84/webhook"
 )
 
 func main() {
@@ -107,7 +105,7 @@ func handleCreatePaymentIntent(w http.ResponseWriter, r *http.Request) {
     }
   }
 
-	pi, err := paymentintent.New(params)
+	pi, err := stripeAPI.NewPaymentIntent(params)
 	if err != nil {
 		// Try to safely cast a generic error to a stripe.Error so that we can get at
 		// some additional Stripe-specific information about what went wrong.
@@ -146,7 +144,7 @@ func handlePaymentNext(w http.ResponseWriter, r *http.Request){
 
 	payment_intent := r.URL.Query().Get("payment_intent")
 
-	pi, _ := paymentintent.Get(
+	pi, _ := stripeAPI.GetPaymentIntent(
 		payment_intent,
 		nil,
 	  )
@@ -167,7 +165,7 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	event, err := webhook.ConstructEvent(b, r.Header.Get("Stripe-Signature"), os.Getenv("STRIPE_WEBHOOK_SECRET"))
+	event, err := stripeAPI.ConstructEvent(b, r.Header.Get("Stripe-Signature"), os.Getenv("STRIPE_WEBHOOK_SECRET"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		log.Printf("webhook.ConstructEvent: %v", err)
