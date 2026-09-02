@@ -1,0 +1,3 @@
+.bundle/
+coverage/
+.rspec_status

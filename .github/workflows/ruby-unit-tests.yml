@@ -1,0 +1,27 @@
+name: Unit Tests (Ruby)
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'custom-payment-flow/server/ruby/**'
+      - '.github/workflows/ruby-unit-tests.yml'
+  pull_request:
+    paths:
+      - 'custom-payment-flow/server/ruby/**'
+      - '.github/workflows/ruby-unit-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  unit_test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: custom-payment-flow/server/ruby
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+      - run: bundle install
+      - run: bundle exec rspec
