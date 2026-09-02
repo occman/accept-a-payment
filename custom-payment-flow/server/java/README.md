@@ -44,3 +44,13 @@ java -cp target/sample-jar-with-dependencies.jar com.stripe.sample.Server
 
 4. If you're using the html client, go to `localhost:4242` to see the demo. For
    react, visit `localhost:3000`.
+
+## Running the unit tests
+
+The unit tests mock the Stripe SDK, so they need no `.env` file or API keys:
+
+```
+mvn test
+```
+
+A JaCoCo coverage report is written to `target/site/jacoco/index.html`.

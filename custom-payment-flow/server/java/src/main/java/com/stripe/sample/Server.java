@@ -22,6 +22,8 @@ import com.stripe.param.PaymentIntentCreateParams;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
+import spark.Route;
+
 public class Server {
     private static Gson gson = new Gson();
 
@@ -90,13 +92,27 @@ public class Server {
             dotenv.get("STATIC_DIR")
           ).normalize().toString());
 
-        get("/config", (request, response) -> {
+        registerRoutes(dotenv);
+    }
+
+    static void registerRoutes(Dotenv dotenv) {
+        get("/config", config(dotenv));
+        post("/create-payment-intent", createPaymentIntent());
+        get("/payment/next", paymentNext());
+        get("/success", success());
+        post("/webhook", webhook(dotenv));
+    }
+
+    static Route config(Dotenv dotenv) {
+        return (request, response) -> {
             response.type("application/json");
 
             return gson.toJson(new ConfigResponse(dotenv.get("STRIPE_PUBLISHABLE_KEY")));
-        });
+        };
+    }
 
-        post("/create-payment-intent", (request, response) -> {
+    static Route createPaymentIntent() {
+        return (request, response) -> {
             response.type("application/json");
 
             CreatePaymentRequest postBody = gson.fromJson(request.body(), CreatePaymentRequest.class);
@@ -150,20 +166,26 @@ public class Server {
               response.status(500);
               return gson.toJson(e);
             }
-        });
+        };
+    }
 
-        get("/payment/next", (request, response) -> {
+    static Route paymentNext() {
+        return (request, response) -> {
             PaymentIntent intent =PaymentIntent.retrieve(request.queryParams("payment_intent"));
             response.redirect("/success?payment_intent_client_secret=" + intent.getClientSecret());
             return "";
-        });
+        };
+    }
 
-        get("/success", (request, response) -> {
+    static Route success() {
+        return (request, response) -> {
             response.redirect("/success.html");
             return "";
-        });
+        };
+    }
 
-        post("/webhook", (request, response) -> {
+    static Route webhook(Dotenv dotenv) {
+        return (request, response) -> {
             String payload = request.body();
             String sigHeader = request.headers("Stripe-Signature");
             String endpointSecret = dotenv.get("STRIPE_WEBHOOK_SECRET");
@@ -196,6 +218,6 @@ public class Server {
 
             response.status(200);
             return "";
-        });
+        };
     }
 }
