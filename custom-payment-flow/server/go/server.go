@@ -16,6 +16,25 @@ import (
 	"github.com/stripe/stripe-go/v84/webhook"
 )
 
+// stripeClient is the narrow set of Stripe API calls the handlers depend on.
+// It is swapped for a mock in tests so no network calls are made.
+type stripeClient interface {
+	NewPaymentIntent(params *stripe.PaymentIntentParams) (*stripe.PaymentIntent, error)
+	GetPaymentIntent(id string, params *stripe.PaymentIntentParams) (*stripe.PaymentIntent, error)
+}
+
+type liveStripeClient struct{}
+
+func (liveStripeClient) NewPaymentIntent(params *stripe.PaymentIntentParams) (*stripe.PaymentIntent, error) {
+	return paymentintent.New(params)
+}
+
+func (liveStripeClient) GetPaymentIntent(id string, params *stripe.PaymentIntentParams) (*stripe.PaymentIntent, error) {
+	return paymentintent.Get(id, params)
+}
+
+var stripeAPI stripeClient = liveStripeClient{}
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -107,7 +126,7 @@ func handleCreatePaymentIntent(w http.ResponseWriter, r *http.Request) {
     }
   }
 
-	pi, err := paymentintent.New(params)
+	pi, err := stripeAPI.NewPaymentIntent(params)
 	if err != nil {
 		// Try to safely cast a generic error to a stripe.Error so that we can get at
 		// some additional Stripe-specific information about what went wrong.
@@ -146,7 +165,7 @@ func handlePaymentNext(w http.ResponseWriter, r *http.Request){
 
 	payment_intent := r.URL.Query().Get("payment_intent")
 
-	pi, _ := paymentintent.Get(
+	pi, _ := stripeAPI.GetPaymentIntent(
 		payment_intent,
 		nil,
 	  )
