@@ -50,3 +50,13 @@ dotnet run
 ```
 
 4. If you're using the html client, go to `localhost:4242` to see the demo.
+
+## Running tests
+
+The xUnit suite in [`tests/server.Tests`](./tests/server.Tests) runs fully offline: the Stripe.net HTTP transport is replaced with a Moq mock, so no real API keys are needed.
+
+```
+dotnet test server.sln
+```
+
+Coverage (via coverlet) is printed at the end of the run and written to `tests/server.Tests/TestResults/coverage.cobertura.xml`.
