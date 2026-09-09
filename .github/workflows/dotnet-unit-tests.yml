@@ -1,0 +1,46 @@
+name: Unit Tests (.NET)
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'custom-payment-flow/server/dotnet/**'
+      - '.github/workflows/dotnet-unit-tests.yml'
+  pull_request:
+    paths:
+      - 'custom-payment-flow/server/dotnet/**'
+      - '.github/workflows/dotnet-unit-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  unit_test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: custom-payment-flow/server/dotnet
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          # server.csproj targets net9.0; global.json (8.0.200, rollForward latestMajor) accepts it
+          dotnet-version: 9.0.x
+      - run: dotnet restore server.sln
+      - run: dotnet test server.sln --no-restore
+      - name: Coverage summary
+        run: |
+          python3 - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          import xml.etree.ElementTree as ET
+          root = ET.parse('server.Tests/TestResults/coverage.cobertura.xml').getroot()
+          print('### Coverlet coverage (server assembly)')
+          for kind in ('lines', 'branches'):
+              covered, valid = int(root.get(kind + '-covered')), int(root.get(kind + '-valid'))
+              print(f'- {kind.title()}: {covered}/{valid} ({100 * covered / valid:.2f}%)')
+          EOF
+          cat "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverlet-report
+          path: custom-payment-flow/server/dotnet/server.Tests/TestResults/coverage.cobertura.xml
