@@ -26,6 +26,8 @@ builder.Services.Configure<StripeOptions>(options =>
     options.SecretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
     options.WebhookSecret = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET");
 });
+builder.Services.AddTransient<PaymentIntentService>();
+builder.Services.AddTransient<CalculationService>();
 
 var app = builder.Build();
 
@@ -46,7 +48,7 @@ app.UseStaticFiles(new StaticFileOptions()
 app.MapGet("/", () => Results.Redirect("index.html"));
 app.MapGet("/config", (IOptions<StripeOptions> options) => new { options.Value.PublishableKey });
 
-app.MapPost("/create-payment-intent", async (CreatePaymentIntentRequest req, IConfiguration configuration) =>
+app.MapPost("/create-payment-intent", async (CreatePaymentIntentRequest req, IConfiguration configuration, PaymentIntentService service, CalculationService calculationService) =>
 {
     var calcuateTax = configuration.GetSection("Stripe").GetValue<bool>("CalculateTax");
 
@@ -56,7 +58,7 @@ app.MapPost("/create-payment-intent", async (CreatePaymentIntentRequest req, ICo
 
     if (calcuateTax)
     {
-        var taxCalculation = CalculateTax(orderAmount, req.Currency);
+        var taxCalculation = CalculateTax(calculationService, orderAmount, req.Currency);
         options = new()
         {
             Amount = taxCalculation.AmountTotal,
@@ -96,7 +98,6 @@ app.MapPost("/create-payment-intent", async (CreatePaymentIntentRequest req, ICo
 
     try
     {
-        var service = new PaymentIntentService();
         var paymentIntent = await service.CreateAsync(options);
         return Results.Ok(new { paymentIntent.ClientSecret });
     }
@@ -107,7 +108,7 @@ app.MapPost("/create-payment-intent", async (CreatePaymentIntentRequest req, ICo
 });
 
 
-static Calculation CalculateTax(long orderAmount, string currency)
+static Calculation CalculateTax(CalculationService calculationService, long orderAmount, string currency)
 {
     var calculationCreateOptions = new CalculationCreateOptions
     {
@@ -135,16 +136,14 @@ static Calculation CalculateTax(long orderAmount, string currency)
         ShippingCost = new CalculationShippingCostOptions { Amount = 300, TaxBehavior = "exclusive" },
     };
 
-    var calculationService = new CalculationService();
     var calculation = calculationService.Create(calculationCreateOptions);
 
     return calculation;
 }
 
-app.MapGet("/payment/next", (HttpRequest request, HttpResponse response) =>
+app.MapGet("/payment/next", (HttpRequest request, HttpResponse response, PaymentIntentService service) =>
 {
     var paymentIntent = request.Query["payment_intent"];
-    var service = new PaymentIntentService();
     var intent = service.Get(paymentIntent);
 
     response.Redirect("/success?payment_intent_client_secret={intent.ClientSecret}");
@@ -182,4 +181,6 @@ app.MapPost("/webhook", async (HttpRequest request, IOptions<StripeOptions> opti
 });
 
 app.Run();
+
+public partial class Program { }
 
