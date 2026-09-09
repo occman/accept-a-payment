@@ -3,7 +3,16 @@
     "stripe/stripe-php": "^20.1",
     "vlucas/phpdotenv": "^5.3"
   },
+  "require-dev": {
+    "phpunit/phpunit": "^10.5"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
   "scripts": {
-    "start": "cd public && php -S 0.0.0.0:4242"
+    "start": "cd public && php -S 0.0.0.0:4242",
+    "test": "phpunit"
   }
 }
