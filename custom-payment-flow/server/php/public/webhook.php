@@ -3,7 +3,10 @@
 require_once 'shared.php';
 header('Content-Type: application/json');
 
-$input = file_get_contents('php://input');
+// The raw request body may be provided by the including script (e.g. tests).
+if (!isset($input)) {
+  $input = file_get_contents('php://input');
+}
 $body = json_decode($input);
 $event = null;
 
@@ -18,7 +21,7 @@ try {
 catch (Exception $e) {
   http_response_code(403);
   echo json_encode([ 'error' => $e->getMessage() ]);
-  exit;
+  return;
 }
 
 if ($event->type == 'payment_intent.succeeded') {

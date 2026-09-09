@@ -23,11 +23,11 @@ try {
   <p>Failed to create a PaymentIntent</p>
   <p>Please check the server logs for more information</p>
 <?php
-  exit;
+  return;
 } catch (Exception $e) {
   error_log($e);
   http_response_code(500);
-  exit;
+  return;
 }
 ?>
 

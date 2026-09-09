@@ -1,6 +1,12 @@
 <?php
 
-require '../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+
+// A preconfigured client (e.g. a test double) can be provided by the
+// including script; in that case skip the .env bootstrap below.
+if (isset($stripe)) {
+  return;
+}
 
 // If the .env file was not configured properly, display a helpful message.
 if(!file_exists('../.env')) {
