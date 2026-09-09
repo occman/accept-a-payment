@@ -2,29 +2,8 @@
 require_once 'shared.php';
 
 try {
-  $paymentIntent = $stripe->paymentIntents->create([
-    'payment_method_types' => ['konbini'],
-    'amount' => 1999,
-    'currency' => 'jpy',
-    'payment_method_options' => [
-        'konbini' => [
-            'product_description' => 'Tシャツ',
-            'expires_after_days' => 3,
-        ],
-    ],
-  ]);
-} catch (\Stripe\Exception\ApiErrorException $e) {
-  http_response_code(400);
-  error_log($e->getError()->message);
-?>
-  <h1>Error</h1>
-  <p>Failed to create a PaymentIntent</p>
-  <p>Please check the server logs for more information</p>
-<?php
-  exit;
-} catch (Exception $e) {
-  error_log($e);
-  http_response_code(500);
+  $paymentIntent = App\Checkout::createIntent($stripe, App\PaymentMethods::params('konbini'));
+} catch (App\PageAborted) {
   exit;
 }
 ?>

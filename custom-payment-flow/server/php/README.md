@@ -55,3 +55,14 @@ php -S 127.0.0.1:4242
 ```
 
 4. Go to [localhost:4242](http://localhost:4242)
+
+## Running tests
+
+The PHPUnit suite is fully offline — the Stripe client is faked, so no API keys or network access are required.
+
+```
+composer install
+composer test
+```
+
+`composer test` runs `phpunit --coverage-text` and prints a coverage summary (requires the `pcov` or `xdebug` PHP extension for coverage).

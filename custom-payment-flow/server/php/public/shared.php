@@ -1,9 +1,18 @@
 <?php
 
-require '../vendor/autoload.php';
+require dirname(__DIR__) . '/vendor/autoload.php';
 
-// If the .env file was not configured properly, display a helpful message.
-if(!file_exists('../.env')) {
+use App\Config;
+use App\InvalidEnvException;
+use App\MissingEnvFileException;
+use App\StripePaymentGateway;
+
+// Load `.env` file from the server directory so that environment variables
+// are available in $_ENV or via getenv(). If the .env file was not configured
+// properly, display a helpful message.
+try {
+  $config = Config::load(dirname(__DIR__));
+} catch (MissingEnvFileException $e) {
   ?>
   <h1>Missing <code>.env</code></h1>
 
@@ -20,16 +29,7 @@ DOMAIN=http://localhost:4242</pre>
 
   <?php
   exit;
-}
-
-// Load `.env` file from the server directory so that
-// environment variables are available in $_ENV or via
-// getenv().
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->load();
-
-// Make sure the configuration file is good.
-if (!$_ENV['STRIPE_SECRET_KEY']) {
+} catch (InvalidEnvException $e) {
   ?>
 
   <h1>Invalid <code>.env</code></h1>
@@ -60,7 +60,7 @@ DOMAIN=http://localhost:4242</pre>
 //
 // See https://docs.stripe.com/keys-best-practices and find your
 // keys at https://dashboard.stripe.com/apikeys.
-$stripe = new \Stripe\StripeClient([
-  'api_key' => $_ENV['STRIPE_SECRET_KEY'],
+$stripe = new StripePaymentGateway(new \Stripe\StripeClient([
+  'api_key' => $config->secretKey,
   'stripe_version' => '2020-08-27',
-]);
+]));

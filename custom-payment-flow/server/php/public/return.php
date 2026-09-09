@@ -2,7 +2,7 @@
 require_once 'shared.php';
 
 // Returning after redirecting to a payment method portal.
-$paymentIntent = $stripe->paymentIntents->retrieve(
+$paymentIntent = $stripe->retrievePaymentIntent(
    $_GET['payment_intent'],
 );
 ?>
