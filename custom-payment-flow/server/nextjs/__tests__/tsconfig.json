@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["jest", "node"],
+    "plugins": [],
+    "incremental": false
+  },
+  "include": ["./**/*.ts", "../lib/**/*.ts", "../app/api/**/*.ts"],
+  "exclude": []
+}
