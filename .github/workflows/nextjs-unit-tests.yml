@@ -1,0 +1,29 @@
+name: Unit Tests (Next.js)
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'custom-payment-flow/server/nextjs/**'
+      - '.github/workflows/nextjs-unit-tests.yml'
+  pull_request:
+    paths:
+      - 'custom-payment-flow/server/nextjs/**'
+      - '.github/workflows/nextjs-unit-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  unit_test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: custom-payment-flow/server/nextjs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: custom-payment-flow/server/nextjs/.node-version
+          cache: npm
+          cache-dependency-path: custom-payment-flow/server/nextjs/package-lock.json
+      - run: npm ci
+      - run: npm run test:coverage
