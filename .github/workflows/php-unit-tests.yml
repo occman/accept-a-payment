@@ -1,0 +1,32 @@
+name: Unit Tests (PHP)
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'custom-payment-flow/server/php/**'
+      - '.github/workflows/php-unit-tests.yml'
+  pull_request:
+    paths:
+      - 'custom-payment-flow/server/php/**'
+      - '.github/workflows/php-unit-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  unit_test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: custom-payment-flow/server/php
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: pcov
+      - uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('custom-payment-flow/server/php/composer.json') }}
+      - run: composer install --prefer-dist --no-interaction
+      - run: composer test

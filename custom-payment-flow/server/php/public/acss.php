@@ -2,31 +2,8 @@
 require_once 'shared.php';
 
 try {
-  $paymentIntent = $stripe->paymentIntents->create([
-    'payment_method_types' => ['acss_debit'],
-    'amount' => 1999,
-    'currency' => 'usd',
-    'payment_method_options' => [
-      'acss_debit' => [
-        'mandate_options' => [
-          'payment_schedule' => 'sporadic',
-          'transaction_type' => 'personal'
-        ]
-      ]
-    ]
-  ]);
-} catch (\Stripe\Exception\ApiErrorException $e) {
-  http_response_code(400);
-  error_log($e->getError()->message);
-?>
-  <h1>Error</h1>
-  <p>Failed to create a PaymentIntent</p>
-  <p>Please check the server logs for more information</p>
-<?php
-  exit;
-} catch (Exception $e) {
-  error_log($e);
-  http_response_code(500);
+  $paymentIntent = App\Checkout::createIntent($stripe, App\PaymentMethods::params('acss'));
+} catch (App\PageAborted) {
   exit;
 }
 ?>
