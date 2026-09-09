@@ -1,5 +1,7 @@
 import env from "dotenv";
 import path from "path";
+import { createRequire } from "module";
+import { fileURLToPath } from "url";
 import cors from "cors";
 // Replace if using a different env file or config.
 env.config({ path: "./.env" });
@@ -223,6 +225,21 @@ app.post(
   }
 );
 
-app.listen(4242, (): void =>
-  console.log(`Node server listening on port ${4242}!`)
-);
+const isEntrypoint = (): boolean => {
+  try {
+    return (
+      createRequire(import.meta.url).resolve(process.argv[1]) ===
+      fileURLToPath(import.meta.url)
+    );
+  } catch {
+    return false;
+  }
+};
+
+if (isEntrypoint()) {
+  app.listen(4242, (): void =>
+    console.log(`Node server listening on port ${4242}!`)
+  );
+}
+
+export default app;
